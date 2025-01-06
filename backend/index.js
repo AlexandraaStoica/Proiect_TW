@@ -1,12 +1,21 @@
 const express = require("express");
 const sequelize = require("./config/database");
 const seedDatabase = require("./config/seedData");
-
+const userRoutes = require("./routes/userRoutes");
 require("dotenv").config();
 
 const app = express();
 
+// Middleware
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 
