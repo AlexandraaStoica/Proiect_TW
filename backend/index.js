@@ -1,4 +1,7 @@
 const express = require("express");
+const sequelize = require("./config/database");
+const seedDatabase = require("./config/seedData");
+
 require("dotenv").config();
 
 const app = express();
@@ -11,6 +14,14 @@ app.get("/", (req, res) => {
   res.status(200).json({ ok: "Da" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} `);
-});
+sequelize
+  .sync({ force: true })
+  .then(() => seedDatabase())
+  .then(() => {
+    console.log("Database synced");
+    app.listen(PORT, () => {
+      console.log(
+        `Server running on port ${PORT} in ${process.env.NODE_ENV} mode`
+      );
+    });
+  });
