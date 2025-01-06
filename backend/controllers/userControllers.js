@@ -5,6 +5,7 @@ const { sequelize } = require("../config/database");
 const userController = {
   async login(req, res) {
     try {
+      console.log(req.body);
       const { email, password } = req.body;
 
       // Find user

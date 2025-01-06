@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
+import axios from "axios";
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
+    const formData={
+      email,password
+    }
     // Logica pentru autentificare (de exemplu, trimiterea datelor către un server)
     console.log('Email:', email);
     console.log('Password:', password);
+    const response=await axios.post("http://localhost:3000/api/users/login",formData);
+    console.log(response.data);
   };
 
   return (
