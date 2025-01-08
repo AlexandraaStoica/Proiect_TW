@@ -4,7 +4,7 @@ const seedDatabase = require("./config/seedData");
 const userRoutes = require("./routes/userRoutes");
 const cors = require("cors");
 require("dotenv").config();
-
+const taskRoutes = require("./routes/taskRoutes");
 const app = express();
 
 // Middleware
@@ -17,7 +17,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/api/users", userRoutes);
-
+app.use("/api/tasks", taskRoutes);
 const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {

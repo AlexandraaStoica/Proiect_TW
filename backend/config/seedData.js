@@ -41,6 +41,42 @@ const seedDatabase = async () => {
       assigneeId: user.id,
     });
 
+    await Task.create({
+      title: "Review Code Changes",
+      description:
+        "Review and provide feedback on the latest pull request for the authentication module",
+      state: "IN_PROGRESS",
+      creatorId: manager.id,
+      assigneeId: user.id,
+    });
+
+    await Task.create({
+      title: "Update Documentation",
+      description:
+        "Update API documentation with new endpoints and response formats",
+      state: "PENDING",
+      creatorId: manager.id,
+      assigneeId: user.id,
+    });
+
+    await Task.create({
+      title: "Client Meeting Preparation",
+      description:
+        "Prepare presentation slides and demo for the upcoming client meeting on Thursday",
+      state: "PENDING",
+      creatorId: manager.id,
+      assigneeId: user.id,
+    });
+
+    await Task.create({
+      title: "Bug Fix: Login Error",
+      description:
+        "Investigate and fix the intermittent login error reported by users",
+      state: "PENDING",
+      creatorId: manager.id,
+      assigneeId: user.id,
+    });
+
     console.log("Database seeded with test data!");
     console.log("Test accounts:");
     console.log("Admin - username: admin, password: admin123");

@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const { sequelize } = require("../config/database");
+require("../config/database");
 
 const userController = {
   async login(req, res) {
@@ -20,10 +20,17 @@ const userController = {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Generate JWT token
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-        expiresIn: "24h",
-      });
+      // Generate JWT token with both id and role
+      const token = jwt.sign(
+        {
+          id: user.id,
+          role: user.role,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "24h",
+        }
+      );
 
       // Respond with user details and token
       res.json({
@@ -37,6 +44,21 @@ const userController = {
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Error during login" });
+    }
+  },
+
+  async me(req, res) {
+    try {
+      res.json({
+        user: {
+          id: req.user.id,
+          email: req.user.email,
+          role: req.user.role,
+        },
+      });
+    } catch (error) {
+      console.error("Me error:", error);
+      res.status(500).json({ error: "Error during me" });
     }
   },
 };
