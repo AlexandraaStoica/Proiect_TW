@@ -1,25 +1,23 @@
 import { useDispatch, useSelector } from "react-redux";
 import { updateTaskStatus, fetchTasks } from "../../store/slices/taskSlice";
-import { FiCheckCircle, FiClock, FiAlertCircle } from "react-icons/fi";
+import { FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { useEffect } from "react";
+import {useNavigate} from "react-router-dom";
 
 const TaskList = () => {
   const dispatch = useDispatch();
   const tasks = useSelector((state) => state.tasks.list);
   const token = useSelector((state) => state.auth.token);
   const role = useSelector((state) => state.auth.role);
+  const navigate = useNavigate();
 
   const completeTask = (taskId) => {
-    dispatch(updateTaskStatus({ taskId, status: "COMPLETED" }));
+    dispatch(updateTaskStatus({ token, taskId, status: "COMPLETED" }));
   };
 
   useEffect(() => {
     if (token) {
-      if (role === "USER") {
-        dispatch(fetchTasks(token, idUser));
-      } else {
         dispatch(fetchTasks(token));
-      }
     }
   }, [dispatch, token]);
 
@@ -30,13 +28,6 @@ const TaskList = () => {
           <div className="badge badge-success gap-2">
             <FiCheckCircle className="w-4 h-4" />
             Completed
-          </div>
-        );
-      case "IN_PROGRESS":
-        return (
-          <div className="badge badge-warning gap-2">
-            <FiClock className="w-4 h-4" />
-            In Progress
           </div>
         );
       default:
@@ -68,6 +59,9 @@ const TaskList = () => {
           </div>
         </div>
 
+        { role === "MANAGER" && (<button className='btn btn-primary mb-20' onClick={()=>{
+            navigate('/tasks/create')
+        }}>Create New Task</button>)}
         <div className="grid gap-6">
           {tasks.map((task) => (
             <div

@@ -15,20 +15,23 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await dispatch(loginUser({ email, password })).unwrap();
+      const result = await dispatch(loginUser({ email, password })).unwrap();
+      console.log("Login result:", result); // Debug log
     } catch (err) {
       console.error("Login failed:", err);
     }
   };
+
   useEffect(() => {
-    if (auth.status === "succeeded") {
-      if (auth.role === "ADMIN") {
+    // Check auth.user.role instead of auth.role
+    if (auth.status === "succeeded" && auth.user) {
+      if (auth.user.role === "ADMIN") {
         navigate("/users/create");
-      } else if (auth.role === "USER" || auth.role === "MANAGER") {
+      } else if (auth.user.role === "USER" || auth.user.role === "MANAGER") {
         navigate("/tasks");
       }
     }
-  }, [auth.status]);
+  }, [auth.status, auth.user]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
