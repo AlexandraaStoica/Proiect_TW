@@ -22,16 +22,15 @@ function Login() {
     }
   };
 
-  useEffect(() => {
-    // Check auth.user.role instead of auth.role
-    if (auth.status === "succeeded" && auth.user) {
-      if (auth.user.role === "ADMIN") {
-        navigate("/users/create");
-      } else if (auth.user.role === "USER" || auth.user.role === "MANAGER") {
-        navigate("/tasks");
-      }
+useEffect(() => {
+  if (auth.status === "succeeded" && auth.user) {
+    if (auth.user.role === "ADMIN") {
+      navigate("/dashboard");  // Redirecționează către dashboard pentru admin
+    } else if (auth.user.role === "USER" || auth.user.role === "MANAGER") {
+      navigate("/tasks");
     }
-  }, [auth.status, auth.user]);
+  }
+}, [auth.status, auth.user, navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">

@@ -18,26 +18,15 @@ function NavBar() {
         </Link>
       </div>
       <div className="flex-none">
-        {user?.role === "ADMIN" && (
-          <Link to="/users/create" className="btn btn-ghost">
-            Create User
-          </Link>
-        )}
-        {user?.role === "MANAGER" && (
-          <Link to="/tasks/create" className="btn btn-ghost">
-            Create Task
-          </Link>
-        )}
-        {user && (
+    
+
+        
           <>
-            <Link to="/tasks" className="btn btn-ghost">
-              Tasks
-            </Link>
             <button onClick={handleLogout} className="btn btn-ghost">
               Logout
             </button>
           </>
-        )}
+       
       </div>
     </div>
   );

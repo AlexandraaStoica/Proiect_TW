@@ -2,6 +2,28 @@ const Task = require("../models/Task");
 const User = require("../models/User");
 
 const taskController = {
+    // Adaugă această nouă funcție
+    async getManagedUsers(req, res) {
+        try {
+            const managerId = req.user.id;
+            const users = await User.findAll({
+                include: [{
+                    model: User,
+                    as: 'managers',
+                    where: { id: managerId },
+                    attributes: []
+                }],
+                where: { role: "USER" }, // Doar utilizatorii, nu și alți manageri
+                attributes: ['id', 'username', 'email']
+            });
+            res.json(users);
+        } catch (error) {
+            console.error("Get managed users error:", error);
+            res.status(500).json({error: "Error getting managed users"});
+        }
+    },
+
+    // Restul funcțiilor rămân neschimbate
     async createTask(req, res) {
         try {
             const {title, description, assigneeId} = req.body;
@@ -57,6 +79,7 @@ const taskController = {
             res.status(500).json({error: "Error fetching tasks"});
         }
     },
+
     async updateTaskStatus(req, res) {
         try {
             const {taskId} = req.params;

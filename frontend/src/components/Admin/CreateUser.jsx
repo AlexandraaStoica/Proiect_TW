@@ -1,57 +1,90 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { createUser } from "../../store/slices/userSlice";
+import { createUser, fetchUsers } from "../../store/slices/userSlice";
 import axios from "axios";
 
 function CreateUser() {
-  const [managers, setManagers] = useState([]);
   const dispatch = useDispatch();
+  const [managers, setManagers] = useState([]);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     role: "USER",
-    managerId: "",
+    managerId: ""
   });
+
+  // Încarcă lista de manageri când se deschide pagina
+  useEffect(() => {
+    const fetchManagers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get("http://localhost:3000/api/users", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setManagers(response.data);
+      } catch (error) {
+        console.error("Error fetching managers:", error);
+      }
+    };
+
+    fetchManagers();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(createUser(formData));
-  };
+    
+    // Verifică dacă a fost selectat un manager pentru USER
+    if (formData.role === "USER" && !formData.managerId) {
+      alert("Please select a manager for the user");
+      return;
+    }
 
-  useEffect(() => {
-    const fetchManagers = async () => {
-      const response = await axios.get("/api/users/managers");
-      setManagers(Array.isArray(response.data) ? response.data : []);
-    };
-    fetchManagers();
-  }, []);
+    try {
+      await dispatch(createUser(formData)).unwrap();
+      alert("User created successfully!");
+      setFormData({
+        email: "",
+        password: "",
+        role: "USER",
+        managerId: ""
+      });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      alert("Failed to create user");
+    }
+  };
 
   return (
     <div className="p-6 w-full flex justify-center">
       <form className="card w-96 bg-base-100 shadow-xl" onSubmit={handleSubmit}>
         <div className="card-body">
           <h2 className="card-title">Create New User</h2>
+          
           <input
             type="email"
             placeholder="Email"
             className="input input-bordered w-full"
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            required
           />
 
           <input
             type="password"
             placeholder="Password"
             className="input input-bordered w-full"
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
           />
 
           <select
             className="select select-bordered w-full"
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value, managerId: "" })}
+            required
           >
             <option value="USER">User</option>
             <option value="MANAGER">Manager</option>
@@ -60,9 +93,9 @@ function CreateUser() {
           {formData.role === "USER" && (
             <select
               className="select select-bordered w-full"
-              onChange={(e) =>
-                setFormData({ ...formData, managerId: e.target.value })
-              }
+              value={formData.managerId}
+              onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+              required
             >
               <option value="">Select Manager</option>
               {managers.map((manager) => (
@@ -73,7 +106,9 @@ function CreateUser() {
             </select>
           )}
 
-          <button className="btn btn-primary mt-4">Create User</button>
+          <button className="btn btn-primary mt-4" type="submit">
+            Create User
+          </button>
         </div>
       </form>
     </div>

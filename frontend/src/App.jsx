@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchUser, logoutUser } from "./store/slices/authSlice";
 import Login from "./components/Login";
 import CreateUser from "./components/Admin/CreateUser";
@@ -7,12 +7,15 @@ import CreateTask from "./components/Manager/CreateTask";
 import TaskList from "./components/User/TaskList";
 import ProtectedRoute from "./components/ProtectedRoute";
 import useAuth from "./hooks/useAuth";
-import {useEffect} from "react";
+import AdminDashboard from "./components/Admin/AdminDashboard";
+import { useEffect } from "react";
+import NavBar from "./components/NavBar";
 
 function App() {
   const { isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user); // Selectăm utilizatorul din Redux
 
   useEffect(() => {
     if (token) {
@@ -33,15 +36,23 @@ function App() {
         </button>
       )}
       <Routes>
-        {/* Only render Login if not logged in */}
         <Route
           path="/login"
           element={
-            isLoggedIn ? <Navigate to="/tasks" replace /> : <Login />
+            isLoggedIn ? (
+              user?.role === "ADMIN" ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/tasks" replace />
+              )
+            ) : (
+              <Login />
+            )
           }
         />
 
         <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+          <Route path="/dashboard" element={<AdminDashboard />} />
           <Route path="/users/create" element={<CreateUser />} />
         </Route>
 
