@@ -30,6 +30,10 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: "USER",
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    }
   },
   {
     hooks: {

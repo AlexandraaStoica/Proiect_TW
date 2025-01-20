@@ -178,7 +178,6 @@ const TaskList = () => {
           </div>
         )}
 
-        {/* Modal for User Task History */}
         {showHistoryModal && selectedUser && (
           <div className="modal modal-open">
             <div className="modal-box w-11/12 max-w-5xl">

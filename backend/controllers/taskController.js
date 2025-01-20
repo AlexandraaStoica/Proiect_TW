@@ -42,14 +42,14 @@ const taskController = {
                     order: [['createdAt', 'DESC']]
                 });
     
-                console.log('Tasks found:', tasks); // Debug log
+                console.log('Tasks found:', tasks);
                 res.json(tasks);
             } catch (error) {
                 console.error("Get tasks by user error:", error);
                 res.status(500).json({ error: "Error fetching user tasks" });
             }
         },
-    // Adaugă această nouă funcție
+
     async getManagedUsers(req, res) {
         try {
             const managerId = req.user.id;
@@ -60,7 +60,7 @@ const taskController = {
                     where: { id: managerId },
                     attributes: []
                 }],
-                where: { role: "USER" }, // Doar utilizatorii, nu și alți manageri
+                where: { role: "USER" }, 
                 attributes: ['id', 'username', 'email']
             });
             res.json(users);
@@ -70,7 +70,6 @@ const taskController = {
         }
     },
 
-    // Restul funcțiilor rămân neschimbate
     async createTask(req, res) {
         try {
             const {title, description, assigneeId} = req.body;

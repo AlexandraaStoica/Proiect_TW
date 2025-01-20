@@ -16,7 +16,7 @@ function Login() {
     e.preventDefault();
     try {
       const result = await dispatch(loginUser({ email, password })).unwrap();
-      console.log("Login result:", result); // Debug log
+      console.log("Login result:", result);
     } catch (err) {
       console.error("Login failed:", err);
     }
@@ -25,7 +25,7 @@ function Login() {
 useEffect(() => {
   if (auth.status === "succeeded" && auth.user) {
     if (auth.user.role === "ADMIN") {
-      navigate("/dashboard");  // Redirecționează către dashboard pentru admin
+      navigate("/dashboard"); 
     } else if (auth.user.role === "USER" || auth.user.role === "MANAGER") {
       navigate("/tasks");
     }

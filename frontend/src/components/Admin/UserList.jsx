@@ -21,6 +21,11 @@ function UserList() {
     return <div>Error: {error}</div>;
   }
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="table w-full">
@@ -29,7 +34,8 @@ function UserList() {
             <th>Username</th>
             <th>Email</th>
             <th>Role</th>
-            <th>Actions</th>
+            <th>Created At</th>
+            
           </tr>
         </thead>
         <tbody>
@@ -46,9 +52,8 @@ function UserList() {
                   {user.role}
                 </span>
               </td>
-              <td>
-                <button className="btn btn-sm btn-error">Delete</button>
-              </td>
+              <td>{formatDate(user.createdAt)}</td>
+      
             </tr>
           ))}
         </tbody>

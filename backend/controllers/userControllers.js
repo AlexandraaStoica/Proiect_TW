@@ -49,34 +49,38 @@ const userController = {
 
   async getUsers(req, res) {
     try {
-      const { role } = req.user;
+      const { role, id } = req.user;
 
-      // Dacă utilizatorul este ADMIN, returnează toți managerii
       if (role === "ADMIN") {
-        const managers = await User.findAll({
-          where: { role: "MANAGER" },
-          attributes: ["id", "username", "email", "role"]
-        });
-        return res.json(managers);
-      }
-
-      // Dacă utilizatorul este MANAGER, returnează utilizatorii lui
-      if (role === "MANAGER") {
-        const managerId = req.user.id;
         const users = await User.findAll({
-          include: [{
-            model: User,
-            as: 'managers',
-            where: { id: managerId },
-            attributes: [],
-            through: { attributes: [] }
-          }],
-          attributes: ["id", "username", "email", "role"]
+          where: {
+            role: ["MANAGER", "USER"],
+          },
+          attributes: ["id", "username", "email", "role", "createdAt"],
+          order: [["createdAt", "DESC"]],
         });
         return res.json(users);
       }
 
-      // Pentru alte roluri, returnează array gol
+      if (role === "MANAGER") {
+        const users = await User.findAll({
+          where: { role: "USER" },
+          include: [
+            {
+              model: User,
+              as: "managers",
+              where: { id: id },
+              attributes: [],
+            },
+          ],
+          attributes: ["id", "username", "email", "role", "createdAt"],
+          order: [["createdAt", "DESC"]],
+        });
+
+        console.log("Users found for manager:", users);
+        return res.json(users);
+      }
+
       return res.json([]);
     } catch (error) {
       console.error("Get users error:", error);
@@ -84,15 +88,30 @@ const userController = {
     }
   },
 
+  async getManagers(req, res) {
+    try {
+      const managers = await User.findAll({
+        where: { role: "MANAGER" },
+        attributes: ["id", "username", "email", "role"],
+      });
+      return res.json(managers);
+    } catch (error) {
+      console.error("Get managers error:", error);
+      res.status(500).json({ error: "Error getting managers" });
+    }
+  },
+
   async me(req, res) {
     try {
-      res.json({
-        user: {
-          id: req.user.id,
-          email: req.user.email,
-          role: req.user.role,
-        },
+      const user = await User.findByPk(req.user.id, {
+        attributes: ["id", "email", "role", "username"],
       });
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ user });
     } catch (error) {
       console.error("Me error:", error);
       res.status(500).json({ error: "Error during me" });
@@ -104,7 +123,11 @@ const userController = {
       const { email, password, role, managerId } = req.body;
       const username = email.split("@")[0];
 
-      // Creează utilizatorul
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ error: "Email already exists" });
+      }
+
       const user = await User.create({
         username,
         email,
@@ -112,8 +135,12 @@ const userController = {
         role,
       });
 
-      // Dacă este user normal și are manager specificat, creează relația
       if (role === "USER" && managerId) {
+        const manager = await User.findByPk(managerId);
+        if (!manager || manager.role !== "MANAGER") {
+          await user.destroy();
+          return res.status(400).json({ error: "Invalid manager selected" });
+        }
         await user.addManager(managerId);
       }
 
@@ -123,14 +150,41 @@ const userController = {
           id: user.id,
           username: user.username,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       console.error("Create user error:", error);
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res
+          .status(400)
+          .json({ error: "Username or email already exists" });
+      }
       res.status(500).json({ error: "Error creating user" });
     }
-  }
+  },
+
+  async deleteUser(req, res) {
+    try {
+      const { id } = req.params;
+
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.role === "ADMIN") {
+        return res.status(403).json({ error: "Cannot delete admin user" });
+      }
+
+      await user.destroy();
+
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ error: "Error deleting user" });
+    }
+  },
 };
 
 module.exports = userController;

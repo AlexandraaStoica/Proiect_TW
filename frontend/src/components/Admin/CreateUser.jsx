@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { createUser, fetchUsers } from "../../store/slices/userSlice";
+import { createUser } from "../../store/slices/userSlice";
 import axios from "axios";
 
 function CreateUser() {
@@ -13,12 +13,11 @@ function CreateUser() {
     managerId: ""
   });
 
-  // Încarcă lista de manageri când se deschide pagina
   useEffect(() => {
     const fetchManagers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get("http://localhost:3000/api/users", {
+        const response = await axios.get("http://localhost:3000/api/users/managers", {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -35,7 +34,6 @@ function CreateUser() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Verifică dacă a fost selectat un manager pentru USER
     if (formData.role === "USER" && !formData.managerId) {
       alert("Please select a manager for the user");
       return;

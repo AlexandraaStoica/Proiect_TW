@@ -13,31 +13,7 @@ function AdminDashboard() {
           </Link>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title">Total Users</h2>
-              <p className="text-4xl font-bold">0</p>
-            </div>
-          </div>
-          
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title">Managers</h2>
-              <p className="text-4xl font-bold">0</p>
-            </div>
-          </div>
-          
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title">Active Users</h2>
-              <p className="text-4xl font-bold">0</p>
-            </div>
-          </div>
-        </div>
 
-        {/* User List */}
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <h2 className="card-title mb-4">User Management</h2>
