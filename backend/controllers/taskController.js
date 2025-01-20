@@ -2,6 +2,53 @@ const Task = require("../models/Task");
 const User = require("../models/User");
 
 const taskController = {
+   
+        async getTasksByUser(req, res) {
+            try {
+                const { userId } = req.params;
+                const managerId = req.user.id;
+    
+                // Verify that this user is managed by the requesting manager
+                const managedUser = await User.findOne({
+                    where: { id: userId },
+                    include: [{
+                        model: User,
+                        as: 'managers',
+                        where: { id: managerId },
+                    }]
+                });
+    
+                if (!managedUser) {
+                    return res.status(403).json({ error: "Not authorized to view this user's tasks" });
+                }
+    
+                // Fetch all tasks for the user, including completed ones
+                const tasks = await Task.findAll({
+                    where: {
+                        assigneeId: userId
+                    },
+                    include: [
+                        {
+                            model: User,
+                            as: "assignee",
+                            attributes: ["username", "id"],
+                        },
+                        {
+                            model: User,
+                            as: "creator",
+                            attributes: ["username", "id"],
+                        }
+                    ],
+                    order: [['createdAt', 'DESC']]
+                });
+    
+                console.log('Tasks found:', tasks); // Debug log
+                res.json(tasks);
+            } catch (error) {
+                console.error("Get tasks by user error:", error);
+                res.status(500).json({ error: "Error fetching user tasks" });
+            }
+        },
     // Adaugă această nouă funcție
     async getManagedUsers(req, res) {
         try {
