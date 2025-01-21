@@ -4,7 +4,6 @@ import { fetchUsers } from "../../store/slices/userSlice";
 import { createTask } from "../../store/slices/taskSlice";
 import { createSelector } from "@reduxjs/toolkit";
 
-// Create memoized selectors
 const selectUsers = createSelector(
     state => state.users,
     users => ({
@@ -18,7 +17,6 @@ function CreateTask() {
     const token = useSelector((state) => state.auth.token);
     const { list: users, status } = useSelector(selectUsers);
 
-    // Add form state
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -31,7 +29,6 @@ function CreateTask() {
         }
     }, [dispatch, token]);
 
-    // Handle form input changes
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData(prev => ({
@@ -40,23 +37,22 @@ function CreateTask() {
         }));
     };
 
-    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Submitting form data:', formData);
-
-        if (!formData.title || !formData.description || !formData.assigneeId) {
-            alert('Please fill in all fields');
+        
+        if (!formData.title || !formData.description) {
+            alert('Title and description are required');
             return;
         }
 
         try {
             await dispatch(createTask({
                 token,
-                ...formData
+                title: formData.title,
+                description: formData.description,
+                assigneeId: formData.assigneeId || null // Permitem null pentru assigneeId
             })).unwrap();
 
-            // Clear form after successful creation
             setFormData({
                 title: '',
                 description: '',
@@ -99,9 +95,8 @@ function CreateTask() {
                         className="select select-bordered w-full"
                         value={formData.assigneeId}
                         onChange={handleChange}
-                        required
                     >
-                        <option value="">Select Assignee</option>
+                        <option value="">Select Assignee (Optional)</option>
                         {status === 'succeeded' && users.map((user) => (
                             <option key={user.id} value={user.id}>
                                 {user.username || user.email}

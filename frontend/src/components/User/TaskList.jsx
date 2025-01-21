@@ -1,10 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
-import { updateTaskStatus, fetchTasks } from "../../store/slices/taskSlice";
+import { updateTaskStatus, fetchTasks, assignTask } from "../../store/slices/taskSlice";
 import { fetchUsers } from "../../store/slices/userSlice";
-import { FiCheckCircle, FiAlertCircle, FiClock, FiArchive } from "react-icons/fi";
+import { FiCheckCircle, FiAlertCircle, FiClock, FiArchive, FiUserPlus } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UserTaskHistory from "./UserTaskHistory";
+import AssignTaskModal from "../Manager/AssignTaskModal";
 
 const TaskList = () => {
   const dispatch = useDispatch();
@@ -16,6 +17,8 @@ const TaskList = () => {
   
   const [selectedUser, setSelectedUser] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -34,6 +37,26 @@ const TaskList = () => {
     dispatch(updateTaskStatus({ token, taskId, status: "CLOSED" }));
   };
 
+  const openAssignModal = (task) => {
+    setSelectedTask(task);
+    setShowAssignModal(true);
+  };
+
+  const closeAssignModal = () => {
+    setSelectedTask(null);
+    setShowAssignModal(false);
+  };
+
+  const handleAssignTask = async (taskId, assigneeId) => {
+    try {
+      await dispatch(assignTask({ token, taskId, assigneeId })).unwrap();
+      dispatch(fetchTasks(token)); // Reincarca task-urile pentru a reflecta schimbarea
+    } catch (error) {
+      console.error('Failed to assign task:', error);
+      alert('Failed to assign task');
+    }
+  };
+
   const getStatusBadge = (state) => {
     switch (state) {
       case "COMPLETED":
@@ -48,6 +71,13 @@ const TaskList = () => {
           <div className="badge badge-neutral gap-2">
             <FiArchive className="w-4 h-4" />
             Closed
+          </div>
+        );
+      case "OPEN":
+        return (
+          <div className="badge badge-warning gap-2">
+            <FiAlertCircle className="w-4 h-4" />
+            Open
           </div>
         );
       default:
@@ -65,17 +95,6 @@ const TaskList = () => {
     setShowHistoryModal(true);
   };
 
-  const getTaskStatistics = () => {
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter((task) => task.state === "COMPLETED").length;
-    const closedTasks = tasks.filter((task) => task.state === "CLOSED").length;
-    const pendingTasks = tasks.filter((task) => task.state === "PENDING").length;
-
-    return { totalTasks, completedTasks, closedTasks, pendingTasks };
-  };
-
-  const stats = getTaskStatistics();
-
   return (
     <div className="min-h-screen bg-base-200 p-8">
       <div className="max-w-5xl mx-auto">
@@ -84,19 +103,31 @@ const TaskList = () => {
           <div className="stats shadow">
             <div className="stat">
               <div className="stat-title">Total Tasks</div>
-              <div className="stat-value text-primary">{stats.totalTasks}</div>
+              <div className="stat-value text-primary">{tasks.length}</div>
+            </div>
+            <div className="stat">
+              <div className="stat-title">Open</div>
+              <div className="stat-value text-warning">
+                {tasks.filter((task) => task.state === "OPEN").length}
+              </div>
             </div>
             <div className="stat">
               <div className="stat-title">Pending</div>
-              <div className="stat-value text-info">{stats.pendingTasks}</div>
+              <div className="stat-value text-info">
+                {tasks.filter((task) => task.state === "PENDING").length}
+              </div>
             </div>
             <div className="stat">
               <div className="stat-title">Completed</div>
-              <div className="stat-value text-success">{stats.completedTasks}</div>
+              <div className="stat-value text-success">
+                {tasks.filter((task) => task.state === "COMPLETED").length}
+              </div>
             </div>
             <div className="stat">
               <div className="stat-title">Closed</div>
-              <div className="stat-value text-neutral">{stats.closedTasks}</div>
+              <div className="stat-value text-neutral">
+                {tasks.filter((task) => task.state === "CLOSED").length}
+              </div>
             </div>
           </div>
         </div>
@@ -166,16 +197,24 @@ const TaskList = () => {
 
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4">
-                    <div className="avatar placeholder">
-                      <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
-                        <span className="text-xs">
-                          {task.assignee.username.charAt(0).toUpperCase()}
+                    {task.assignee ? (
+                      <>
+                        <div className="avatar placeholder">
+                          <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
+                            <span className="text-xs">
+                              {task.assignee.username.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-sm opacity-70">
+                          Assignee: {task.assignee.username}
                         </span>
-                      </div>
-                    </div>
-                    <span className="text-sm opacity-70">
-                      Assignee: {task.assignee.username}
-                    </span>
+                      </>
+                    ) : (
+                      <span className="text-sm opacity-70">
+                        No assignee
+                      </span>
+                    )}
                   </div>
 
                   <div className="card-actions justify-end">
@@ -195,6 +234,15 @@ const TaskList = () => {
                       >
                         <FiArchive className="w-4 h-4" />
                         Close Task
+                      </button>
+                    )}
+                    {role === "MANAGER" && task.state === "OPEN" && (
+                      <button
+                        className="btn btn-info btn-sm gap-2"
+                        onClick={() => openAssignModal(task)}
+                      >
+                        <FiUserPlus className="w-4 h-4" />
+                        Assign Task
                       </button>
                     )}
                   </div>
@@ -243,6 +291,16 @@ const TaskList = () => {
               <button className="cursor-default">close</button>
             </div>
           </div>
+        )}
+
+        {showAssignModal && selectedTask && (
+          <AssignTaskModal
+            isOpen={showAssignModal}
+            onClose={closeAssignModal}
+            task={selectedTask}
+            users={users}
+            onAssign={handleAssignTask}
+          />
         )}
       </div>
     </div>
