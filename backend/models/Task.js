@@ -14,9 +14,9 @@ const Task = sequelize.define('Task', {
     allowNull: false
   },
   state: {
-    type: DataTypes.ENUM( 'PENDING', 'COMPLETED'),
+    type: DataTypes.ENUM('PENDING', 'COMPLETED', 'CLOSED'),
     allowNull: false,
-    defaultValue: 'OPEN'
+    defaultValue: 'PENDING'
   },
   completedAt: {
     type: DataTypes.DATE,

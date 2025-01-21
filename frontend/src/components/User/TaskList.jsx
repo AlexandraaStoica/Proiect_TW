@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { updateTaskStatus, fetchTasks } from "../../store/slices/taskSlice";
 import { fetchUsers } from "../../store/slices/userSlice";
-import { FiCheckCircle, FiAlertCircle, FiClock } from "react-icons/fi";
+import { FiCheckCircle, FiAlertCircle, FiClock, FiArchive } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UserTaskHistory from "./UserTaskHistory";
@@ -11,7 +11,7 @@ const TaskList = () => {
   const tasks = useSelector((state) => state.tasks.list);
   const users = useSelector((state) => state.users.list);
   const token = useSelector((state) => state.auth.token);
-  const role = useSelector((state) => state.auth.role);
+  const role = useSelector((state) => state.auth.user?.role);
   const navigate = useNavigate();
   
   const [selectedUser, setSelectedUser] = useState(null);
@@ -30,6 +30,10 @@ const TaskList = () => {
     dispatch(updateTaskStatus({ token, taskId, status: "COMPLETED" }));
   };
 
+  const closeTask = (taskId) => {
+    dispatch(updateTaskStatus({ token, taskId, status: "CLOSED" }));
+  };
+
   const getStatusBadge = (state) => {
     switch (state) {
       case "COMPLETED":
@@ -37,6 +41,13 @@ const TaskList = () => {
           <div className="badge badge-success gap-2">
             <FiCheckCircle className="w-4 h-4" />
             Completed
+          </div>
+        );
+      case "CLOSED":
+        return (
+          <div className="badge badge-neutral gap-2">
+            <FiArchive className="w-4 h-4" />
+            Closed
           </div>
         );
       default:
@@ -54,6 +65,17 @@ const TaskList = () => {
     setShowHistoryModal(true);
   };
 
+  const getTaskStatistics = () => {
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter((task) => task.state === "COMPLETED").length;
+    const closedTasks = tasks.filter((task) => task.state === "CLOSED").length;
+    const pendingTasks = tasks.filter((task) => task.state === "PENDING").length;
+
+    return { totalTasks, completedTasks, closedTasks, pendingTasks };
+  };
+
+  const stats = getTaskStatistics();
+
   return (
     <div className="min-h-screen bg-base-200 p-8">
       <div className="max-w-5xl mx-auto">
@@ -62,13 +84,19 @@ const TaskList = () => {
           <div className="stats shadow">
             <div className="stat">
               <div className="stat-title">Total Tasks</div>
-              <div className="stat-value text-primary">{tasks.length}</div>
+              <div className="stat-value text-primary">{stats.totalTasks}</div>
+            </div>
+            <div className="stat">
+              <div className="stat-title">Pending</div>
+              <div className="stat-value text-info">{stats.pendingTasks}</div>
             </div>
             <div className="stat">
               <div className="stat-title">Completed</div>
-              <div className="stat-value text-success">
-                {tasks.filter((task) => task.state === "COMPLETED").length}
-              </div>
+              <div className="stat-value text-success">{stats.completedTasks}</div>
+            </div>
+            <div className="stat">
+              <div className="stat-title">Closed</div>
+              <div className="stat-value text-neutral">{stats.closedTasks}</div>
             </div>
           </div>
         </div>
@@ -119,6 +147,16 @@ const TaskList = () => {
                   </div>
                   <div className="text-sm opacity-70">
                     Created: {new Date(task.createdAt).toLocaleDateString()}
+                    {task.completedAt && (
+                      <div>
+                        Completed: {new Date(task.completedAt).toLocaleDateString()}
+                      </div>
+                    )}
+                    {task.closedAt && (
+                      <div>
+                        Closed: {new Date(task.closedAt).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -140,8 +178,8 @@ const TaskList = () => {
                     </span>
                   </div>
 
-                  {role === "USER" && task.state !== "COMPLETED" && (
-                    <div className="card-actions justify-end">
+                  <div className="card-actions justify-end">
+                    {role === "USER" && task.state === "PENDING" && (
                       <button
                         className="btn btn-primary btn-sm gap-2"
                         onClick={() => completeTask(task.id)}
@@ -149,8 +187,17 @@ const TaskList = () => {
                         <FiCheckCircle className="w-4 h-4" />
                         Complete Task
                       </button>
-                    </div>
-                  )}
+                    )}
+                    {role === "MANAGER" && task.state === "COMPLETED" && (
+                      <button
+                        className="btn btn-neutral btn-sm gap-2"
+                        onClick={() => closeTask(task.id)}
+                      >
+                        <FiArchive className="w-4 h-4" />
+                        Close Task
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

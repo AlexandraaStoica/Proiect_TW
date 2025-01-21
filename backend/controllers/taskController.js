@@ -128,23 +128,38 @@ const taskController = {
 
     async updateTaskStatus(req, res) {
         try {
-            const {taskId} = req.params;
-            const {status} = req.body;
+            const { taskId } = req.params;
+            const { status } = req.body;
             const task = await Task.findByPk(taskId);
+            
             if (!task) {
-                return res.status(404).json({error: "Task not found"});
+                return res.status(404).json({ error: "Task not found" });
             }
+    
+        
+            if (status === 'CLOSED' && req.user.role !== 'MANAGER') {
+                return res.status(403).json({ error: "Only managers can close tasks" });
+            }
+    
+            if (status === 'COMPLETED' && req.user.role !== 'USER') {
+                return res.status(403).json({ error: "Only users can complete tasks" });
+            }
+    
+            
             task.state = status;
-            if (status === "COMPLETED") {
+            if (status === 'COMPLETED') {
                 task.completedAt = new Date();
+            } else if (status === 'CLOSED') {
+                task.closedAt = new Date();
             }
+    
             await task.save();
             res.status(200).json(task);
         } catch (error) {
             console.error("Update task status error:", error);
-            res.status(500).json({error: "Error updating task status"});
+            res.status(500).json({ error: "Error updating task status" });
         }
-    },
+    }
 };
 
 module.exports = taskController;

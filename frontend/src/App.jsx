@@ -15,7 +15,7 @@ function App() {
   const { isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user); // Selectăm utilizatorul din Redux
+  const user = useSelector((state) => state.auth.user); 
 
   useEffect(() => {
     if (token) {
