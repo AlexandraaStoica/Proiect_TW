@@ -1,3 +1,5 @@
+**_Membrii echipei: Serban Mariana-Luciana si Stoica Alexandra_**
+
 # HOW TO RUN???
 
 1. cd backend
